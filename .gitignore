@@ -1,5 +1,6 @@
 # Maven
 target/
+# target/allure-results/
 
 # IntelliJ IDEA
 .idea/
