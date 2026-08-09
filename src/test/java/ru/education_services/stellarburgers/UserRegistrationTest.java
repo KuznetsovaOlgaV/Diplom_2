@@ -6,9 +6,8 @@ import org.junit.Test;
 
 import java.util.UUID;
 
+import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.*;
-
-import io.qameta.allure.restassured.AllureRestAssured;
 
 public class UserRegistrationTest extends ApiTestBase {
 
@@ -19,11 +18,9 @@ public class UserRegistrationTest extends ApiTestBase {
         String password = "StrongPassword1234";
         String name = "Test User";
 
-
         Response response = userApi.registerUser(email, password, name);
-
         response.then()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .body("success", is(true))
                 .body("user.email", is(email))
                 .body("accessToken", notNullValue())
@@ -39,30 +36,39 @@ public class UserRegistrationTest extends ApiTestBase {
 
         userApi.registerUser(email, password, name);
         Response response = userApi.registerUser(email, password, name);
-
         response.then()
-                .statusCode(403)
-                .body("success", is(false));
+                .statusCode(SC_FORBIDDEN)
+                .body("success", is(false))
+                .body("message", equalTo("User already exists"));
     }
 
     @Test
-    @Description("Создание пользователя: создать пользователя и не заполнить одно из обязательных полей - без email")
+    @Description("Создание пользователя: без обязательного поля email")
     public void testRegistrationWithoutEmail() {
         Response response = userApi.registerUser(null, "Password1234", "Name");
-        response.then().statusCode(403).body("success", is(false));
+        response.then()
+                .statusCode(SC_FORBIDDEN)
+                .body("success", is(false))
+                .body("message", equalTo("Email, password and name are required fields"));
     }
 
     @Test
-    @Description("Создание пользователя: создать пользователя и не заполнить одно из обязательных полей - без пароля")
+    @Description("Создание пользователя: без обязательного поля password")
     public void testRegistrationWithoutPassword() {
         Response response = userApi.registerUser("test@yandex.ru", null, "Name");
-        response.then().statusCode(403).body("success", is(false));
+        response.then()
+                .statusCode(SC_FORBIDDEN)
+                .body("success", is(false))
+                .body("message", equalTo("Email, password and name are required fields"));
     }
 
     @Test
-    @Description("Создание пользователя: создать пользователя и не заполнить одно из обязательных полей - без имени")
+    @Description("Создание пользователя: без обязательного поля name")
     public void testRegistrationWithoutName() {
         Response response = userApi.registerUser("test@yandex.ru", "Password1234", null);
-        response.then().statusCode(403).body("success", is(false));
+        response.then()
+                .statusCode(SC_FORBIDDEN)
+                .body("success", is(false))
+                .body("message", equalTo("Email, password and name are required fields"));
     }
 }

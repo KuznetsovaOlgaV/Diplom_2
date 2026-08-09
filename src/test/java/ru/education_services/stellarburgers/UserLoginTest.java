@@ -2,70 +2,59 @@ package ru.education_services.stellarburgers;
 
 import io.qameta.allure.Description;
 import io.restassured.response.Response;
-import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.*;
+import java.util.UUID;
 
-import io.qameta.allure.restassured.AllureRestAssured;
+import static org.apache.http.HttpStatus.*;
+import static org.hamcrest.Matchers.*;
 
 public class UserLoginTest extends ApiTestBase {
 
+    private String email;
+    private String password;
+    private String name;
 
-    @After
-    public void tearDown() {
-        if (userApi != null && userApi.getLastCreatedEmail() != null) {
-            Response deleteResponse = userApi.deleteCurrentUser();
-            if (deleteResponse != null) {
-            }
-        }
-        userApi.clearTokens();
+    @Before
+    public void setUp() {
+        email = "login-" + UUID.randomUUID() + "@yandex.ru";
+        password = "StrongPassword1234";
+        name = "Login User";
+
+        userApi.registerUser(email, password, name)
+                .then()
+                .statusCode(SC_OK);
     }
 
     @Test
     @Description("Логин пользователя: вход под существующим пользователем")
     public void testSuccessfulLogin() {
-        String email = "login-" + System.currentTimeMillis() + "@yandex.ru";
-        String password = "StrongPassword1234";
-        String name = "Login User";
-
-        Response registerResponse = userApi.registerUser(email, password, name);
-        registerResponse.then()
-                .statusCode(200)
-                .body("success", is(true));
-
         Response response = userApi.loginUser(email, password);
-
         response.then()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .body("success", is(true))
                 .body("accessToken", notNullValue())
                 .body("refreshToken", notNullValue());
     }
 
     @Test
-    @Description("Логин пользователя: вход с неверным логином и паролем - паролем")
-    public void testInvalidCredentials() {
-        String email = "wrong-" + System.currentTimeMillis() + "@yandex.ru";
-        String password = "CorrectPassword1234";
-        String name = "Wrong User";
-
-        Response registerResponse = userApi.registerUser(email, password, name);
-        registerResponse.then()
-                .statusCode(200)
-                .body("success", is(true));
-
+    @Description("Логин пользователя: вход с неверным паролем")
+    public void testLoginWithInvalidPassword() {
         Response response = userApi.loginUser(email, "wrongpassword");
-
         response.then()
-                .statusCode(401)
-                .body("success", is(false));
+                .statusCode(SC_UNAUTHORIZED)
+                .body("success", is(false))
+                .body("message", equalTo("email or password are incorrect"));
     }
 
     @Test
-    @Description("Логин пользователя: вход с неверным логином и паролем - логином ")
-    public void testNonexistentUserLogin() {
-        Response response = userApi.loginUser("nonexistent@yandex.ru", "anypassword");
-        response.then().statusCode(401).body("success", is(false));
+    @Description("Логин пользователя: вход с неверным логином (несуществующий пользователь)")
+    public void testLoginWithInvalidLogin() {
+        Response response = userApi.loginUser("nonexistent@yandex.ru", password);
+        response.then()
+                .statusCode(SC_UNAUTHORIZED)
+                .body("success", is(false))
+                .body("message", equalTo("email or password are incorrect"));
     }
 }
