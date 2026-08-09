@@ -1,6 +1,7 @@
 # Maven
-target/
+
 # target/allure-results/
+# target/site/allure-maven-plugin
 
 # IntelliJ IDEA
 .idea/
