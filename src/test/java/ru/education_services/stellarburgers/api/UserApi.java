@@ -1,40 +1,29 @@
-package ru.education_services.stellarburgers;
+package ru.education_services.stellarburgers.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.qameta.allure.Step;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-
-import java.util.HashMap;
-import java.util.Map;
+import ru.education_services.stellarburgers.request_model.LoginRequest;
+import ru.education_services.stellarburgers.request_model.RegisterRequest;
 
 import static io.restassured.RestAssured.given;
 
 public class UserApi {
-
-    private final ObjectMapper mapper = new ObjectMapper();
-    private String accessToken;   // хранится БЕЗ префикса Bearer
+    private String accessToken;
     private String refreshToken;
     private String lastCreatedEmail;
 
     @Step("Регистрация пользователя")
     public Response registerUser(String email, String password, String name) {
         lastCreatedEmail = email;
-        Map<String, String> body = new HashMap<>();
-        body.put("email", email == null ? "" : email);
-        body.put("password", password == null ? "" : password);
-        body.put("name", name == null ? "" : name);
-
-        String jsonBody = serialize(body);
+        RegisterRequest body = new RegisterRequest(email, password, name);
         Response response = given()
                 .contentType(ContentType.JSON)
-                .body(jsonBody)
+                .body(body)
                 .post("/api/auth/register")
                 .then()
                 .extract()
                 .response();
-
         if (response.statusCode() == 200) {
             this.accessToken = extractAccessToken(response);
             this.refreshToken = response.jsonPath().getString("refreshToken");
@@ -45,19 +34,14 @@ public class UserApi {
     @Step("Логин пользователя")
     public Response loginUser(String email, String password) {
         lastCreatedEmail = email;
-        Map<String, String> body = new HashMap<>();
-        body.put("email", email);
-        body.put("password", password);
-
-        String jsonBody = serialize(body);
+        LoginRequest body = new LoginRequest(email, password);
         Response response = given()
                 .contentType(ContentType.JSON)
-                .body(jsonBody)
+                .body(body)
                 .post("/api/auth/login")
                 .then()
                 .extract()
                 .response();
-
         if (response.statusCode() == 200) {
             this.accessToken = extractAccessToken(response);
             this.refreshToken = response.jsonPath().getString("refreshToken");
@@ -98,13 +82,5 @@ public class UserApi {
             return rawToken.substring("Bearer ".length());
         }
         return rawToken;
-    }
-
-    private String serialize(Object obj) {
-        try {
-            return mapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize object", e);
-        }
     }
 }

@@ -1,4 +1,4 @@
-package ru.education_services.stellarburgers;
+package ru.education_services.stellarburgers.api;
 
 import io.restassured.RestAssured;
 import org.junit.After;

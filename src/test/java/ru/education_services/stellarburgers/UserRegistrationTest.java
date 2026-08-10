@@ -3,6 +3,7 @@ package ru.education_services.stellarburgers;
 import io.qameta.allure.Description;
 import io.restassured.response.Response;
 import org.junit.Test;
+import ru.education_services.stellarburgers.api.ApiTestBase;
 
 import java.util.UUID;
 
