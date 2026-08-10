@@ -1,0 +1,34 @@
+# Maven
+
+# target/allure-results/
+# target/site/allure-maven-plugin/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# JaCoCo (exec‑файл тоже не нужен в репозитории)
+target/jacoco.exec
